@@ -1,0 +1,465 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI Interface - Animated Transition</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        font-family: "Inter", sans-serif;
+        background-color: #f3f3f2;
+        color: #1a1a1a;
+      }
+      .sidebar-icon {
+        @apply w-10 h-10 flex items-center justify-center rounded-lg text-gray-400 hover:bg-gray-200 hover:text-black transition-colors cursor-pointer;
+      }
+      .tool-pill {
+        @apply flex items-center justify-center bg-white border border-gray-200 rounded-full text-xs font-medium text-gray-600 hover:bg-gray-50 cursor-pointer transition-colors select-none;
+      }
+      textarea::-webkit-scrollbar {
+        display: none;
+      }
+
+      /* Fade Animations */
+      .fade-enter {
+        animation: fadeIn 0.2s ease-out forwards;
+      }
+      .fade-out {
+        animation: fadeOut 0.5s ease-out forwards;
+        pointer-events: none;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      @keyframes fadeOut {
+        from {
+          opacity: 1;
+          transform: scale(1);
+        }
+        to {
+          opacity: 0;
+          transform: scale(0.95);
+        }
+      }
+
+      /* Message Bubbles */
+      .msg-user {
+        @apply bg-[#f3f3f2] self-end rounded-[20px] px-5 py-3 text-[15px] max-w-[80%];
+      }
+      .msg-ai {
+        @apply text-gray-800 self-start text-[15px] max-w-3xl leading-relaxed;
+      }
+    </style>
+  </head>
+  <body class="h-screen w-full flex overflow-hidden selection:bg-gray-300">
+    <!-- Sidebar -->
+    <aside
+      class="w-[70px] h-full hidden sm:flex flex-col items-center py-6 gap-4 border-r border-gray-200/50 z-20 bg-[#f3f3f2]"
+    >
+      <div class="sidebar-icon">
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+          <line x1="9" y1="3" x2="9" y2="21"></line>
+        </svg>
+      </div>
+      <div
+        onclick="location.reload()"
+        class="w-8 h-8 flex items-center justify-center bg-black text-white rounded-lg cursor-pointer hover:opacity-80 transition-opacity mt-2"
+        title="New Chat"
+      >
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+      </div>
+      <div class="sidebar-icon mt-1">
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+      </div>
+      <div class="sidebar-icon">
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path
+            d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+          ></path>
+          <polyline points="14 2 14 8 20 8"></polyline>
+          <line x1="16" y1="13" x2="8" y2="13"></line>
+          <line x1="16" y1="17" x2="8" y2="17"></line>
+          <polyline points="10 9 9 9 8 9"></polyline>
+        </svg>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 relative h-full flex flex-col items-center">
+      <!-- Header -->
+      <div class="absolute top-6 right-8 flex items-center gap-3 z-30">
+        <div
+          class="w-8 h-8 rounded-full bg-gradient-to-br from-gray-300 to-gray-500 shadow-inner cursor-pointer"
+        ></div>
+        <button
+          class="bg-black text-white text-xs font-medium px-4 py-2 rounded-full hover:opacity-80 transition-opacity"
+        >
+          Get Pro
+        </button>
+      </div>
+
+      <!-- Chat History Container (Hidden Initially) -->
+      <div
+        id="chatHistory"
+        class="flex-1 w-full max-w-3xl px-4 pt-10 pb-40 overflow-y-auto flex flex-col gap-6 hidden"
+      >
+        <!-- Messages will be injected here via JS -->
+      </div>
+
+      <!-- WELCOME SCREEN (Title + Pills) -->
+      <!-- This container is centered. We will fade it out when chat starts. -->
+      <div
+        id="welcomeScreen"
+        class="absolute inset-0 flex flex-col items-center justify-center transition-opacity duration-500 z-0 pointer-events-none"
+      >
+        <!-- Inner wrapper with pointer-events-auto so buttons work -->
+        <div class="flex flex-col items-center w-full pointer-events-auto">
+          <h1
+            class="text-3xl font-semibold text-black mb-12 tracking-tight transition-all duration-500"
+          >
+            What can I help with?
+          </h1>
+
+          <!-- Placeholder to reserve space for the input box so layout matches -->
+          <div class="h-[140px] w-full max-w-3xl mb-8"></div>
+
+          <!-- Prompt Pills -->
+          <div
+            class="flex flex-wrap justify-center gap-2.5 w-full max-w-2xl transition-all duration-500"
+          >
+            <button
+              onclick="fillPrompt(this)"
+              class="px-4 py-2 bg-white border border-gray-200 rounded-full text-[13px] text-gray-600 font-medium hover:bg-gray-50 hover:border-gray-300 hover:text-black transition-all shadow-[0_1px_2px_rgba(0,0,0,0.05)] active:scale-95"
+            >
+              Check address balance
+            </button>
+            <button
+              onclick="fillPrompt(this)"
+              class="px-4 py-2 bg-white border border-gray-200 rounded-full text-[13px] text-gray-600 font-medium hover:bg-gray-50 hover:border-gray-300 hover:text-black transition-all shadow-[0_1px_2px_rgba(0,0,0,0.05)] active:scale-95"
+            >
+              Swap Near to another token
+            </button>
+            <button
+              onclick="fillPrompt(this)"
+              class="px-4 py-2 bg-white border border-gray-200 rounded-full text-[13px] text-gray-600 font-medium hover:bg-gray-50 hover:border-gray-300 hover:text-black transition-all shadow-[0_1px_2px_rgba(0,0,0,0.05)] active:scale-95"
+            >
+              Send Near to another address
+            </button>
+          </div>
+
+          <!-- Footer Disclaimer -->
+          <div class="mt-8 text-[11px] text-gray-400">
+            AI can make mistakes. Please double-check responses.
+          </div>
+        </div>
+      </div>
+
+      <!-- INPUT CONTAINER (The Floating Element) -->
+      <!-- 
+             Initial State: top-1/2 -translate-y-1/2 (Center)
+             Active State: top-[calc(100%-180px)] or bottom positioning (Bottom)
+        -->
+      <div
+        id="inputWrapper"
+        class="absolute w-full max-w-3xl px-4 z-20 transition-all duration-700 ease-in-out top-1/2 -translate-y-1/2"
+      >
+        <div
+          class="w-full bg-white rounded-[32px] p-4 shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-gray-100 flex flex-col min-h-[140px] relative transition-all focus-within:shadow-[0_8px_30px_rgba(0,0,0,0.06)]"
+        >
+          <textarea
+            id="mainInput"
+            class="w-full bg-transparent text-gray-800 placeholder-gray-400 text-[15px] resize-none focus:outline-none p-1 mb-10 h-full"
+            placeholder="Ask anything"
+            autofocus
+            onkeydown="handleEnter(event)"
+          ></textarea>
+
+          <!-- Bottom Toolbar -->
+          <div
+            class="absolute bottom-4 left-4 right-4 flex items-center justify-between"
+          >
+            <div class="flex items-center gap-2">
+              <button
+                class="tool-pill w-8 h-8 text-gray-500 hover:text-black hover:bg-gray-100 border-transparent hover:border-gray-200 p-0"
+              >
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path
+                    d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"
+                  ></path>
+                </svg>
+              </button>
+
+              <div class="relative">
+                <button
+                  id="modelBtn"
+                  class="flex flex-row items-center gap-1.5 px-3 py-1.5 bg-white border border-gray-200 rounded-full hover:bg-gray-50 hover:border-gray-300 active:bg-gray-100 transition-all"
+                >
+                  <span
+                    class="font-bold text-gray-800 text-[13px]"
+                    id="modelText"
+                    >Auto</span
+                  >
+                  <svg
+                    id="chevronIcon"
+                    class="text-gray-400 transition-transform duration-200"
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="3"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                  </svg>
+                </button>
+                <!-- Dropdown -->
+                <div
+                  id="modelMenu"
+                  class="hidden absolute bottom-full mb-2 left-0 w-40 bg-white border border-gray-100 rounded-xl shadow-xl p-1 z-50"
+                >
+                  <div
+                    class="px-3 py-2.5 hover:bg-gray-50 rounded-lg flex items-center justify-between cursor-pointer"
+                    onclick="selectModel('Auto')"
+                  >
+                    <span class="text-xs font-bold text-gray-900">Auto</span>
+                    <svg
+                      class="w-3 h-3 text-blue-600"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      stroke-width="3"
+                    >
+                      <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                  </div>
+                  <div
+                    class="px-3 py-2.5 hover:bg-gray-50 rounded-lg flex items-center justify-between cursor-pointer text-gray-600"
+                    onclick="selectModel('GPT-4o')"
+                  >
+                    <span class="text-xs font-medium">GPT-4o</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <button
+              onclick="submitChat()"
+              class="bg-black hover:bg-gray-800 text-white rounded-full w-8 h-8 flex items-center justify-center transition-colors shadow-sm"
+            >
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <line x1="12" y1="19" x2="12" y2="5"></line>
+                <polyline points="5 12 12 5 19 12"></polyline>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Warning text that appears only in bottom mode (optional, keeping clean for now) -->
+      </div>
+    </main>
+
+    <script>
+      // DOM Elements
+      const modelBtn = document.getElementById("modelBtn");
+      const modelMenu = document.getElementById("modelMenu");
+      const chevron = document.getElementById("chevronIcon");
+      const modelText = document.getElementById("modelText");
+
+      const mainInput = document.getElementById("mainInput");
+      const inputWrapper = document.getElementById("inputWrapper");
+      const welcomeScreen = document.getElementById("welcomeScreen");
+      const chatHistory = document.getElementById("chatHistory");
+
+      let isChatActive = false;
+
+      // --- Event Listeners ---
+
+      // Dropdown Logic
+      modelBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const isHidden = modelMenu.classList.contains("hidden");
+        if (isHidden) {
+          modelMenu.classList.remove("hidden");
+          modelMenu.classList.add("fade-enter");
+          chevron.classList.add("rotate-180");
+        } else {
+          closeMenu();
+        }
+      });
+
+      document.addEventListener("click", (e) => {
+        if (!modelBtn.contains(e.target) && !modelMenu.contains(e.target)) {
+          closeMenu();
+        }
+      });
+
+      function closeMenu() {
+        modelMenu.classList.add("hidden");
+        modelMenu.classList.remove("fade-enter");
+        chevron.classList.remove("rotate-180");
+      }
+
+      function selectModel(name) {
+        modelText.innerText = name;
+        closeMenu();
+      }
+
+      // --- Chat Logic ---
+
+      function fillPrompt(btn) {
+        const text = btn.innerText;
+        mainInput.value = text;
+        mainInput.focus();
+        // Optional: Auto submit when pill clicked?
+        // submitChat();
+      }
+
+      function handleEnter(e) {
+        if (e.key === "Enter" && !e.shiftKey) {
+          e.preventDefault();
+          submitChat();
+        }
+      }
+
+      function submitChat() {
+        const text = mainInput.value.trim();
+        if (!text) return;
+
+        // 1. If this is the first message, trigger layout transition
+        if (!isChatActive) {
+          activateChatMode();
+        }
+
+        // 2. Add User Message
+        addMessageToHistory(text, "user");
+
+        // 3. Clear Input
+        mainInput.value = "";
+
+        // 4. Simulate AI Response (delayed)
+        setTimeout(() => {
+          addMessageToHistory(
+            "I am a simulated AI. I can see you've moved the input box to the bottom successfully!",
+            "ai",
+          );
+        }, 800);
+      }
+
+      function activateChatMode() {
+        isChatActive = true;
+
+        // Animate Input Box to Bottom
+        // Remove centering classes
+        inputWrapper.classList.remove("top-1/2", "-translate-y-1/2");
+        // Add bottom classes
+        inputWrapper.classList.add("bottom-6", "translate-y-0");
+
+        // Fade out Welcome Screen
+        welcomeScreen.classList.add("fade-out");
+
+        // Show Chat History
+        chatHistory.classList.remove("hidden");
+
+        // Adjust input box styling slightly if needed (optional)
+        // e.g. reduce shadow or size
+      }
+
+      function addMessageToHistory(text, sender) {
+        const msgDiv = document.createElement("div");
+
+        if (sender === "user") {
+          msgDiv.className = "msg-user";
+          msgDiv.innerText = text;
+        } else {
+          msgDiv.className = "msg-ai";
+          // Using innerHTML for AI to allow formatting if needed later
+          msgDiv.innerHTML = text;
+        }
+
+        // Animate message in
+        msgDiv.classList.add("fade-enter");
+
+        chatHistory.appendChild(msgDiv);
+
+        // Scroll to bottom
+        chatHistory.scrollTop = chatHistory.scrollHeight;
+      }
+    </script>
+  </body>
+</html>

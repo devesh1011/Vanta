@@ -1,0 +1,12 @@
+{
+  "usdt.fakes.testnet": {
+    "price": "0.999892",
+    "symbol": "USDT.e",
+    "decimal": 6
+  },
+  "wrap.testnet": {
+    "price": "4.97",
+    "symbol": "wNEAR",
+    "decimal": 24
+  }
+}
