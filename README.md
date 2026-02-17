@@ -1,6 +1,6 @@
 <a href="https://near.org/">
   <img alt="NEAR Blockchain AI Assistant with privacy-preserving TEE models" src="app/(chat)/opengraph-image.png">
-  <h1 align="center">Qilin | Near AI Assistant</h1>
+  <h1 align="center">Vanta | Near AI Assistant</h1>
 </a>
 
 <p align="center">
@@ -16,7 +16,7 @@
 </p>
 
 <p align="center">
-  <a href="https://qilin-kiro.vercel.app/">
+  <a href="https://Vanta-kiro.vercel.app/">
     <strong>🚀 Live Demo</strong>
   </a>
   ·
@@ -113,28 +113,36 @@ Autonomous agents are AI-powered entities that can independently analyze markets
 ## Blockchain Capabilities
 
 ### Check Balance
+
 Ask the assistant to check your NEAR account balance:
+
 ```
 "Check balance for alice.near"
 "What's my balance?" (after connecting wallet)
 ```
 
 ### Send Tokens
+
 Send NEAR tokens to any account with natural language:
+
 ```
 "Send 5 NEAR to bob.near"
 "Transfer 10 NEAR to alice.testnet with memo 'payment'"
 ```
 
 ### Swap Tokens
+
 Swap tokens on Ref Finance DEX:
+
 ```
 "Swap 10 NEAR to USDC"
 "Exchange 100 USDT for wNEAR"
 ```
 
 ### Account Information
+
 Get detailed information about any NEAR account:
+
 ```
 "Get account info for alice.near"
 "Show me details for bob.testnet"
@@ -161,6 +169,7 @@ This assistant uses NEAR AI models that run in Trusted Execution Environments (T
 ### Verification
 
 Verify that models are running in secure TEE environments:
+
 - Models are cryptographically verified before use
 - All responses can be traced to verified TEE instances
 - Transparent attestation reports available
@@ -219,11 +228,13 @@ Deploy your own NEAR Blockchain AI Assistant to Vercel:
 ## Running Locally
 
 1. **Install Dependencies**
+
 ```bash
 pnpm install
 ```
 
 2. **Setup Environment Variables**
+
 ```bash
 # Copy example env file
 cp .env.example .env.local
@@ -232,11 +243,13 @@ cp .env.example .env.local
 ```
 
 3. **Setup Database**
+
 ```bash
 pnpm db:migrate
 ```
 
 4. **Start Development Server**
+
 ```bash
 pnpm dev
 ```
@@ -271,6 +284,7 @@ MIT License - see LICENSE file for details
 ## Support
 
 For issues and questions:
+
 - [GitHub Issues](https://github.com/yourusername/near-ai-assistant/issues)
 - [NEAR Discord](https://discord.gg/near)
 - [NEAR AI Docs](https://docs.near.ai)
