@@ -53,7 +53,7 @@ const PureChatItem = ({
       <DropdownMenu modal={true}>
         <DropdownMenuTrigger asChild>
           <SidebarMenuAction
-            className="mr-0.5 data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+            className="mr-0.5 data-[state=open]:!bg-zinc-200 data-[state=open]:!text-zinc-900"
             showOnHover={!isActive}
           >
             <MoreHorizontalIcon />
@@ -61,16 +61,20 @@ const PureChatItem = ({
           </SidebarMenuAction>
         </DropdownMenuTrigger>
 
-        <DropdownMenuContent align="end" side="bottom">
+        <DropdownMenuContent
+          align="end"
+          className="!bg-white !text-zinc-900 border-zinc-200 min-w-40"
+          side="bottom"
+        >
           <DropdownMenuSub>
-            <DropdownMenuSubTrigger className="cursor-pointer">
+            <DropdownMenuSubTrigger className="cursor-pointer hover:!bg-zinc-100 focus:!bg-zinc-100 data-[state=open]:!bg-zinc-100 !text-zinc-900">
               <ShareIcon />
               <span>Share</span>
             </DropdownMenuSubTrigger>
             <DropdownMenuPortal>
-              <DropdownMenuSubContent>
+              <DropdownMenuSubContent className="!bg-white !text-zinc-900 border-zinc-200 min-w-40">
                 <DropdownMenuItem
-                  className="cursor-pointer flex-row justify-between"
+                  className="cursor-pointer flex-row justify-between hover:!bg-zinc-100 focus:!bg-zinc-100 !text-zinc-900"
                   onClick={() => {
                     setVisibilityType("private");
                   }}
@@ -84,7 +88,7 @@ const PureChatItem = ({
                   ) : null}
                 </DropdownMenuItem>
                 <DropdownMenuItem
-                  className="cursor-pointer flex-row justify-between"
+                  className="cursor-pointer flex-row justify-between hover:!bg-zinc-100 focus:!bg-zinc-100 !text-zinc-900"
                   onClick={() => {
                     setVisibilityType("public");
                   }}
@@ -100,7 +104,7 @@ const PureChatItem = ({
           </DropdownMenuSub>
 
           <DropdownMenuItem
-            className="cursor-pointer text-destructive focus:bg-destructive/15 focus:text-destructive dark:text-red-500"
+            className="cursor-pointer text-destructive focus:!bg-destructive/15 focus:!text-destructive hover:!bg-destructive/15 hover:!text-destructive item-destructive"
             onSelect={() => onDelete(chat.id)}
           >
             <TrashIcon />

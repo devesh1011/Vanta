@@ -6,6 +6,7 @@ import { memo, useEffect } from "react";
 import { useMessages } from "@/hooks/use-messages";
 import type { Vote } from "@/lib/db/schema";
 import type { ChatMessage } from "@/lib/types";
+import { cn } from "@/lib/utils";
 import { useDataStream } from "./data-stream-provider";
 import { Conversation, ConversationContent } from "./elements/conversation";
 import { Greeting } from "./greeting";
@@ -61,13 +62,21 @@ function PureMessages({
 
   return (
     <div
-      className="overscroll-behavior-contain -webkit-overflow-scrolling-touch flex-1 touch-pan-y overflow-y-scroll"
+      className="overscroll-behavior-contain -webkit-overflow-scrolling-touch flex-1 touch-pan-y overflow-y-auto"
       ref={messagesContainerRef}
       style={{ overflowAnchor: "none" }}
     >
-      <Conversation className="mx-auto flex min-w-0 max-w-3xl flex-col gap-6">
+      <Conversation
+        className={cn(
+          "mx-auto flex min-w-0 max-w-3xl flex-col gap-6",
+          messages.length === 0 && "h-full",
+        )}
+      >
         <ConversationContent
-          className={`flex flex-col gap-6 px-2 ${messages.length === 0 ? "justify-center" : "pt-10 pb-40"}`}
+          className={cn(
+            "flex flex-col gap-6 px-2",
+            messages.length === 0 ? "justify-center h-full" : "pt-10 pb-40",
+          )}
         >
           {messages.length === 0 && <Greeting />}
 
@@ -96,11 +105,6 @@ function PureMessages({
           <AnimatePresence mode="wait">
             {status === "submitted" && <ThinkingMessage key="thinking" />}
           </AnimatePresence>
-
-          <div
-            className="min-h-[24px] min-w-[24px] shrink-0"
-            ref={messagesEndRef}
-          />
         </ConversationContent>
       </Conversation>
 

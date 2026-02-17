@@ -71,7 +71,7 @@ export function AppSidebar({ user }: { user: User | undefined }) {
                 }}
               >
                 <span className="cursor-pointer rounded-md px-2 font-semibold text-lg text-black hover:bg-gray-100">
-                  Vantos
+                  Vanta
                 </span>
               </Link>
               <div className="flex flex-row gap-1">

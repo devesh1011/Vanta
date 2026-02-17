@@ -27,6 +27,7 @@ import { ChatSDKError } from "@/lib/errors";
 import type { Attachment, ChatMessage } from "@/lib/types";
 import type { AppUsage } from "@/lib/usage";
 import { fetcher, fetchWithErrorHandlers, generateUUID } from "@/lib/utils";
+import { useWallet } from "@/hooks/use-wallet";
 import { Artifact } from "./artifact";
 import { useDataStream } from "./data-stream-provider";
 import { Messages } from "./messages";
@@ -59,6 +60,7 @@ export function Chat({
 
   const { mutate } = useSWRConfig();
   const { dataStream, setDataStream } = useDataStream();
+  const { accountId: walletAccountId } = useWallet();
 
   const [input, setInput] = useState<string>("");
   const [usage, setUsage] = useState<AppUsage | undefined>(initialLastContext);
@@ -93,6 +95,7 @@ export function Chat({
             message: request.messages.at(-1),
             selectedChatModel: currentModelIdRef.current,
             selectedVisibilityType: visibilityType,
+            walletAccountId: walletAccountId ?? undefined,
             ...request.body,
           },
         };

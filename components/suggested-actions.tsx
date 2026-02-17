@@ -21,7 +21,7 @@ function PureSuggestedActions({ chatId, sendMessage }: SuggestedActionsProps) {
 
   return (
     <div
-      className="flex w-full max-w-2xl flex-wrap justify-center gap-2.5"
+      className="mx-auto flex w-full max-w-2xl flex-wrap justify-center gap-2.5"
       data-testid="suggested-actions"
     >
       {suggestedActions.map((suggestedAction, index) => (
@@ -47,15 +47,6 @@ function PureSuggestedActions({ chatId, sendMessage }: SuggestedActionsProps) {
           </button>
         </motion.div>
       ))}
-
-      <motion.div
-        animate={{ opacity: 1 }}
-        className="mt-8 text-[11px] text-gray-400"
-        initial={{ opacity: 0 }}
-        transition={{ delay: 0.4, duration: 0.5 }}
-      >
-        AI can make mistakes. Please double-check responses.
-      </motion.div>
     </div>
   );
 }

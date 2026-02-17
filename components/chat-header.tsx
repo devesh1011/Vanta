@@ -58,7 +58,7 @@ function PureChatHeader({
 
         <Button
           asChild
-          className="h-8 bg-black px-3 text-white hover:bg-gray-800 md:h-fit md:px-3"
+          className="h-8 px-3 !bg-cream !text-black border !border-black hover:!bg-black hover:!text-white md:h-fit md:px-3"
         >
           <Link href="/agents">
             <span className="text-sm">Agents</span>

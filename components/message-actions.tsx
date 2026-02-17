@@ -44,25 +44,22 @@ export function PureMessageActions({
     toast.success("Copied to clipboard!");
   };
 
-  // User messages get edit (on hover) and copy actions
+  // User messages get edit and copy actions
   if (message.role === "user") {
     return (
       <Actions className="-mr-0.5 justify-end">
-        <div className="relative">
-          {setMode && (
-            <Action
-              className="-left-10 absolute top-0 !text-black opacity-0 transition-opacity focus-visible:opacity-100 group-hover/message:opacity-100"
-              data-testid="message-edit-button"
-              onClick={() => setMode("edit")}
-              tooltip="Edit"
-            >
-              <PencilEditIcon />
-            </Action>
-          )}
-          <Action onClick={handleCopy} tooltip="Copy">
-            <CopyIcon />
+        {setMode && (
+          <Action
+            data-testid="message-edit-button"
+            onClick={() => setMode("edit")}
+            tooltip="Edit"
+          >
+            <PencilEditIcon />
           </Action>
-        </div>
+        )}
+        <Action onClick={handleCopy} tooltip="Copy">
+          <CopyIcon />
+        </Action>
       </Actions>
     );
   }

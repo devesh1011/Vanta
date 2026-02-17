@@ -56,7 +56,7 @@ export function VisibilitySelector({
 
   const selectedVisibility = useMemo(
     () => visibilities.find((visibility) => visibility.id === visibilityType),
-    [visibilityType]
+    [visibilityType],
   );
 
   return (
@@ -65,11 +65,11 @@ export function VisibilitySelector({
         asChild
         className={cn(
           "w-fit data-[state=open]:bg-accent data-[state=open]:text-accent-foreground",
-          className
+          className,
         )}
       >
         <Button
-          className="hidden h-8 md:flex md:h-fit md:px-2"
+          className="h-8 px-3 !bg-cream !text-black border !border-black hover:!bg-black hover:!text-white md:h-fit md:px-3"
           data-testid="visibility-selector"
           variant="outline"
         >
@@ -79,10 +79,13 @@ export function VisibilitySelector({
         </Button>
       </DropdownMenuTrigger>
 
-      <DropdownMenuContent align="start" className="min-w-[300px]">
+      <DropdownMenuContent
+        align="start"
+        className="min-w-[300px] !bg-white !text-zinc-900 border-zinc-200"
+      >
         {visibilities.map((visibility) => (
           <DropdownMenuItem
-            className="group/item flex flex-row items-center justify-between gap-4"
+            className="group/item flex flex-row items-center justify-between gap-4 cursor-pointer hover:!bg-zinc-100 focus:!bg-zinc-100 !text-zinc-900"
             data-active={visibility.id === visibilityType}
             data-testid={`visibility-selector-item-${visibility.id}`}
             key={visibility.id}
@@ -92,14 +95,14 @@ export function VisibilitySelector({
             }}
           >
             <div className="flex flex-col items-start gap-1">
-              {visibility.label}
+              <span className="font-medium">{visibility.label}</span>
               {visibility.description && (
-                <div className="text-muted-foreground text-xs">
+                <div className="text-zinc-500 text-xs">
                   {visibility.description}
                 </div>
               )}
             </div>
-            <div className="text-foreground opacity-0 group-data-[active=true]/item:opacity-100 dark:text-foreground">
+            <div className="text-zinc-900 opacity-0 group-data-[active=true]/item:opacity-100">
               <CheckCircleFillIcon />
             </div>
           </DropdownMenuItem>

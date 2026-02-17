@@ -31,15 +31,15 @@ export function ModelSelector({
   const { availableChatModelIds } = entitlementsByUserType[userType];
 
   const availableChatModels = chatModels.filter((chatModel) =>
-    availableChatModelIds.includes(chatModel.id)
+    availableChatModelIds.includes(chatModel.id),
   );
 
   const selectedChatModel = useMemo(
     () =>
       availableChatModels.find(
-        (chatModel) => chatModel.id === optimisticModelId
+        (chatModel) => chatModel.id === optimisticModelId,
       ),
-    [optimisticModelId, availableChatModels]
+    [optimisticModelId, availableChatModels],
   );
 
   return (
@@ -48,7 +48,7 @@ export function ModelSelector({
         asChild
         className={cn(
           "w-fit data-[state=open]:bg-accent data-[state=open]:text-accent-foreground",
-          className
+          className,
         )}
       >
         <Button
@@ -62,7 +62,7 @@ export function ModelSelector({
       </DropdownMenuTrigger>
       <DropdownMenuContent
         align="start"
-        className="min-w-[280px] max-w-[90vw] sm:min-w-[300px]"
+        className="min-w-[280px] max-w-[90vw] sm:min-w-[300px] !bg-white !text-zinc-900 border-zinc-200"
       >
         {availableChatModels.map((chatModel) => {
           const { id } = chatModel;
@@ -83,17 +83,19 @@ export function ModelSelector({
               }}
             >
               <button
-                className="group/item flex w-full flex-row items-center justify-between gap-2 sm:gap-4"
+                className="group/item flex w-full flex-row items-center justify-between gap-2 sm:gap-4 cursor-pointer hover:!bg-zinc-100 focus:!bg-zinc-100 !text-zinc-900"
                 type="button"
               >
                 <div className="flex flex-col items-start gap-1">
-                  <div className="text-sm sm:text-base">{chatModel.name}</div>
-                  <div className="line-clamp-2 text-muted-foreground text-xs">
+                  <div className="text-sm sm:text-base font-medium">
+                    {chatModel.name}
+                  </div>
+                  <div className="line-clamp-2 text-zinc-500 text-xs text-left">
                     {chatModel.description}
                   </div>
                 </div>
 
-                <div className="shrink-0 text-foreground opacity-0 group-data-[active=true]/item:opacity-100 dark:text-foreground">
+                <div className="shrink-0 text-zinc-900 opacity-0 group-data-[active=true]/item:opacity-100">
                   <CheckCircleFillIcon />
                 </div>
               </button>

@@ -66,12 +66,12 @@ export function SidebarUserNav({ user }: { user: User }) {
             )}
           </DropdownMenuTrigger>
           <DropdownMenuContent
-            className="w-(--radix-popper-anchor-width)"
+            className="w-(--radix-popper-anchor-width) !bg-white !text-gray-900 border-gray-200"
             data-testid="user-nav-menu"
             side="top"
           >
             <DropdownMenuItem
-              className="cursor-pointer"
+              className="cursor-pointer !text-gray-900 hover:!bg-gray-100 focus:!bg-gray-100 focus:!text-gray-900"
               data-testid="user-nav-item-theme"
               onSelect={() =>
                 setTheme(resolvedTheme === "dark" ? "light" : "dark")
@@ -79,10 +79,10 @@ export function SidebarUserNav({ user }: { user: User }) {
             >
               {`Toggle ${resolvedTheme === "light" ? "dark" : "light"} mode`}
             </DropdownMenuItem>
-            <DropdownMenuSeparator />
+            <DropdownMenuSeparator className="!bg-gray-200" />
             <DropdownMenuItem asChild data-testid="user-nav-item-auth">
               <button
-                className="w-full cursor-pointer"
+                className="w-full cursor-pointer !text-gray-900 hover:!bg-gray-100 focus:!bg-gray-100 focus:!text-gray-900"
                 onClick={() => {
                   if (status === "loading") {
                     toast({

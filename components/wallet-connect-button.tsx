@@ -48,10 +48,9 @@ export function WalletConnectButton({ className }: WalletConnectButtonProps) {
   if (!isConnected) {
     return (
       <Button
-        className={cn("h-8 px-2 md:h-fit md:px-3", className)}
+        className="h-8 px-3 !bg-cream !text-black border !border-black hover:!bg-black hover:!text-white md:h-fit md:px-3"
         disabled={isConnecting}
         onClick={handleConnect}
-        variant="outline"
       >
         {isConnecting ? (
           <>
@@ -75,8 +74,10 @@ export function WalletConnectButton({ className }: WalletConnectButtonProps) {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button
-          className={cn("h-8 px-2 md:h-fit md:px-3", className)}
-          variant="outline"
+          className={cn(
+            "h-8 px-2 md:h-fit md:px-3 !bg-cream !text-black border !border-black hover:!bg-black hover:!text-white",
+            className,
+          )}
         >
           <WalletIcon />
           <span className="hidden md:inline truncate max-w-[120px]">
@@ -89,23 +90,26 @@ export function WalletConnectButton({ className }: WalletConnectButtonProps) {
           )}
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-[240px]">
+      <DropdownMenuContent
+        align="end"
+        className="w-[240px] !bg-white !text-zinc-900 border-zinc-200"
+      >
         <div className="px-2 py-1.5">
           <p className="text-sm font-medium">Connected Account</p>
-          <p className="text-xs text-muted-foreground truncate">{accountId}</p>
+          <p className="text-xs text-zinc-500 truncate">{accountId}</p>
         </div>
         {balance && (
           <>
-            <DropdownMenuSeparator />
+            <DropdownMenuSeparator className="bg-zinc-200" />
             <div className="px-2 py-1.5">
               <p className="text-sm font-medium">Balance</p>
-              <p className="text-xs text-muted-foreground">{balance} NEAR</p>
+              <p className="text-xs text-zinc-500">{balance} NEAR</p>
             </div>
           </>
         )}
-        <DropdownMenuSeparator />
+        <DropdownMenuSeparator className="bg-zinc-200" />
         <DropdownMenuItem
-          className="cursor-pointer"
+          className="cursor-pointer hover:!bg-zinc-100 focus:!bg-zinc-100 !text-zinc-900"
           disabled={isDisconnecting}
           onSelect={handleDisconnect}
         >

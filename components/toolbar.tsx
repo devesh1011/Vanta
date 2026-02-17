@@ -89,15 +89,18 @@ const Tool = ({
       <TooltipTrigger asChild>
         <motion.div
           animate={{ opacity: 1, transition: { delay: 0.1 } }}
-          className={cx("rounded-full p-3", {
-            "bg-primary !text-primary-foreground": selectedTool === description,
-          })}
+          className="rounded-full p-3"
           exit={{
             scale: 0.9,
             opacity: 0,
             transition: { duration: 0.1 },
           }}
           initial={{ scale: 1, opacity: 0 }}
+          style={{
+            color: selectedTool === description ? "#f3f3f2" : "#1a1a1a",
+            backgroundColor:
+              selectedTool === description ? "#1a1a1a" : "transparent",
+          }}
           onClick={() => {
             handleSelect();
           }}
