@@ -4,7 +4,13 @@ import { z } from "zod";
 import type { ChatMessage } from "@/lib/types";
 import { generateUUID } from "@/lib/utils";
 import { getNearConfig } from "@/lib/near/config";
-import { lookupToken, validateSwapParams, parseTokenAmount, getSupportedTokensList } from "@/lib/ref-finance/utils";
+import {
+  lookupToken,
+  validateSwapParams,
+  parseTokenAmount,
+  getSupportedTokensList,
+} from "@/lib/ref-finance/utils";
+import { normalizeTokenSymbol } from "@/lib/ref-finance/tokens";
 
 type SwapTokensProps = {
   session: Session;
@@ -13,24 +19,29 @@ type SwapTokensProps = {
 
 /**
  * Swap Tokens Tool
- * 
+ *
  * This tool executes a token swap on Ref Finance DEX.
  * It sends the swap request to the client which will use Ref SDK to generate and execute the transaction.
  */
 export const swapTokens = ({ session, dataStream }: SwapTokensProps) =>
   tool({
     description:
-      "Swap tokens on Ref Finance DEX. Use this when the user wants to swap/exchange tokens. This will generate the swap transaction and send it to the wallet for confirmation. The swap includes 1% slippage protection.",
+      "REQUIRED: Call this tool immediately when user wants to swap, trade, exchange, or convert tokens (NEAR, USDT, USDC). Do not explain first - just call this tool. It handles everything: generating transaction, slippage protection, and wallet confirmation.",
     inputSchema: z.object({
       fromToken: z
         .string()
         .describe("Source token symbol (e.g., 'NEAR', 'USDT', 'USDC')"),
       amount: z
         .string()
-        .describe("Amount to swap in human-readable format (e.g., '0.1', '5.5')"),
+        .describe(
+          "Amount to swap in human-readable format (e.g., '0.1', '5.5')",
+        ),
       toToken: z
         .string()
-        .describe("Destination token symbol (e.g., 'USDT', 'USDC', 'NEAR')"),
+        .optional()
+        .describe(
+          "Destination token symbol (e.g., 'USDT', 'USDC', 'NEAR'). REQUIRED — always provide this.",
+        ),
     }),
     execute: async ({ fromToken, amount, toToken }) => {
       console.log("🔵 REF TOOL: swapTokens called", {
@@ -39,13 +50,39 @@ export const swapTokens = ({ session, dataStream }: SwapTokensProps) =>
         toToken,
       });
 
+      // Normalize token symbols to handle LLM truncations (e.g. "US" → "USDT")
+      fromToken = normalizeTokenSymbol(fromToken);
+      if (toToken) {
+        toToken = normalizeTokenSymbol(toToken);
+      }
+
+      console.log("🔵 REF TOOL: After normalization", { fromToken, toToken });
+
+      // Validate that all required parameters are present
+      if (!fromToken || !amount || !toToken) {
+        console.error("❌ REF TOOL: Missing required parameters", {
+          fromToken,
+          amount,
+          toToken,
+        });
+        return {
+          success: false,
+          error: `Missing required parameters. I need fromToken, amount, AND toToken. Please retry and specify all three. Example: swapTokens(fromToken: "NEAR", amount: "1", toToken: "USDT")`,
+        };
+      }
+
       try {
         // Get network configuration
         const nearConfig = getNearConfig();
         const network = nearConfig.networkId;
 
         // Validate swap parameters
-        const validation = validateSwapParams(fromToken, toToken, amount, network);
+        const validation = validateSwapParams(
+          fromToken,
+          toToken,
+          amount,
+          network,
+        );
         if (!validation.valid) {
           return {
             success: false,
@@ -69,7 +106,7 @@ export const swapTokens = ({ session, dataStream }: SwapTokensProps) =>
         // If user says "swap NEAR", we'll treat it as wNEAR and include wrapping in the transaction
         const fromTokenUpper = fromToken.toUpperCase();
         let needsWrapping = false;
-        
+
         if (fromTokenUpper === "NEAR") {
           // User wants to swap native NEAR - we'll wrap it automatically
           needsWrapping = true;
@@ -79,7 +116,7 @@ export const swapTokens = ({ session, dataStream }: SwapTokensProps) =>
         // Convert amount to token's smallest unit
         const amountInSmallestUnit = parseTokenAmount(
           amount,
-          fromTokenMeta.decimals
+          fromTokenMeta.decimals,
         );
 
         // Estimate the swap to get expected output and minimum output
@@ -88,7 +125,7 @@ export const swapTokens = ({ session, dataStream }: SwapTokensProps) =>
           fromTokenMeta.id,
           amountInSmallestUnit,
           toTokenMeta.id,
-          network
+          network,
         );
 
         // Generate transaction ID

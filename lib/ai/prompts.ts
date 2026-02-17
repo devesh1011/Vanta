@@ -63,37 +63,44 @@ Transaction hash: \`ABC123...\`
 `;
 
 export const refSwapPrompt = `
-When handling token swap requests on Ref Finance DEX:
+**CRITICAL: Token Swap Handling**
 
-1. **Direct Swap**: Use swapTokens tool when user wants to swap tokens
-   - The tool automatically handles slippage (1% default)
-   - The wallet will show final confirmation before executing
+When the user requests to swap tokens (e.g., "swap 1 NEAR to USDT", "swap NEAR with USDT", "trade 5 USDT for NEAR"):
 
-2. **Supported Tokens**:
-   - Testnet: NEAR, USDT, USDC
-   - Mainnet: NEAR, USDT, USDC
-   - Token symbols are case-insensitive
+**YOU MUST IMMEDIATELY CALL THE swapTokens TOOL - DO NOT RESPOND WITH TEXT FIRST**
 
-3. **Error Handling**:
-   - If token not supported, list available tokens
-   - If insufficient balance, show required vs available
-   - If no liquidity pool, explain swap not available
-   - If user rejects in wallet, acknowledge without retry
+**IMPORTANT: The swapTokens tool requires ALL THREE parameters:**
+1. fromToken: The token being swapped FROM (e.g., "NEAR", "USDT", "USDC")
+2. amount: The amount to swap (e.g., "1", "0.5", "10")
+3. toToken: The token being swapped TO (e.g., "USDT", "NEAR", "USDC")
 
-4. **Transaction Results**:
-   - Format transaction hash as clickable explorer link
-   - Use correct explorer URL based on network
-   - Show transaction details
+**Understanding user intent:**
+- "swap X NEAR to USDT" → fromToken: NEAR, toToken: USDT
+- "swap X NEAR with USDT" → fromToken: NEAR, toToken: USDT
+- "swap X NEAR for USDT" → fromToken: NEAR, toToken: USDT
+- "trade X USDT to NEAR" → fromToken: USDT, toToken: NEAR
+- "exchange X NEAR into USDC" → fromToken: NEAR, toToken: USDC
+- "convert X USDT to NEAR" → fromToken: USDT, toToken: NEAR
 
-Example flow:
-User: "swap 0.1 NEAR to USDT"
-Assistant: [calls swapTokens]
-Assistant: "Swap transaction created. Please confirm in your wallet to swap 0.1 NEAR to USDT..."
-[After wallet confirmation]
-Assistant: "✅ Swap successful! Swapped 0.1 NEAR to USDT.
+**Supported Tokens**:
+- Testnet: NEAR, USDT, USDC
+- Mainnet: NEAR, USDT, USDC
 
-Transaction hash: \`ABC123...\`
-[View on NEAR Explorer](https://testnet.nearblocks.io/txns/ABC123...)"
+**Examples of CORRECT tool calls**:
+
+User: "swap 1 NEAR to USDT"
+YOU: swapTokens(fromToken: "NEAR", amount: "1", toToken: "USDT")
+
+User: "swap 0.5 NEAR with USDT on testnet"
+YOU: swapTokens(fromToken: "NEAR", amount: "0.5", toToken: "USDT")
+
+User: "exchange 5 USDT for NEAR"
+YOU: swapTokens(fromToken: "USDT", amount: "5", toToken: "NEAR")
+
+User: "trade 0.1 NEAR to USDC"
+YOU: swapTokens(fromToken: "NEAR", amount: "0.1", toToken: "USDC")
+
+**After tool execution**: Only respond AFTER the tool returns. Confirm the transaction was created and is waiting for wallet confirmation.
 `;
 
 export const nearAIVerificationPrompt = `
@@ -163,17 +170,23 @@ About the origin of user's request:
 export const systemPrompt = ({
   selectedChatModel,
   requestHints,
+  walletAccountId,
 }: {
   selectedChatModel: string;
   requestHints: RequestHints;
+  walletAccountId?: string;
 }) => {
   const requestPrompt = getRequestPromptFromHints(requestHints);
 
+  const walletPrompt = walletAccountId
+    ? `\nThe user has a NEAR wallet connected with account ID: "${walletAccountId}". When the user asks to check their balance, send tokens, swap tokens, or perform any wallet-related action, use this account ID automatically without asking them for it.\n`
+    : `\nThe user does not have a NEAR wallet connected. If they ask about wallet-related actions (check balance, send tokens, etc.), suggest they connect their wallet first using the wallet connect button in the top-right corner of the page.\n`;
+
   if (selectedChatModel === "chat-model-reasoning") {
-    return `${regularPrompt}\n\n${requestPrompt}\n\n${nearTransactionPrompt}\n\n${refSwapPrompt}\n\n${nearAIVerificationPrompt}`;
+    return `${regularPrompt}\n\n${requestPrompt}${walletPrompt}\n\n${nearTransactionPrompt}\n\n${refSwapPrompt}\n\n${nearAIVerificationPrompt}`;
   }
 
-  return `${regularPrompt}\n\n${requestPrompt}\n\n${nearTransactionPrompt}\n\n${refSwapPrompt}\n\n${nearAIVerificationPrompt}\n\n${artifactsPrompt}`;
+  return `${regularPrompt}\n\n${requestPrompt}${walletPrompt}\n\n${nearTransactionPrompt}\n\n${refSwapPrompt}\n\n${nearAIVerificationPrompt}\n\n${artifactsPrompt}`;
 };
 
 export const codePrompt = `
@@ -208,7 +221,7 @@ You are a spreadsheet creation assistant. Create a spreadsheet in csv format bas
 
 export const updateDocumentPrompt = (
   currentContent: string | null,
-  type: ArtifactKind
+  type: ArtifactKind,
 ) => {
   let mediaType = "document";
 
@@ -227,4 +240,4 @@ export const titlePrompt = `\n
     - you will generate a short title based on the first message a user begins a conversation with
     - ensure it is not more than 80 characters long
     - the title should be a summary of the user's message
-    - do not use quotes or colons`
+    - do not use quotes or colons`;
