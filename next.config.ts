@@ -4,6 +4,7 @@ const nextConfig: NextConfig = {
   experimental: {
     ppr: true,
   },
+  turbopack: {},
   serverExternalPackages: ["near-api-js"],
   images: {
     remotePatterns: [
