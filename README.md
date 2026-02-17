@@ -1,6 +1,5 @@
 <a href="https://near.org/">
-  <img alt="NEAR Blockchain AI Assistant with privacy-preserving TEE models" src="app/(chat)/opengraph-image.png">
-  <h1 align="center">Qilin | Near AI Assistant</h1>
+  <h1 align="center">Vanta | Near AI Assistant</h1>
 </a>
 
 <p align="center">
@@ -8,19 +7,11 @@
 </p>
 
 <p align="center">
-  <a href="#features"><strong>Features</strong></a> ·
-  <a href="#blockchain-capabilities"><strong>Blockchain Capabilities</strong></a> ·
-  <a href="#privacy-preserving-ai"><strong>Privacy & Security</strong></a> ·
-  <a href="#deploy-your-own"><strong>Deploy Your Own</strong></a> ·
-  <a href="#running-locally"><strong>Running Locally</strong></a>
-</p>
-
-<p align="center">
-  <a href="https://qilin-kiro.vercel.app/">
+  <a href="https://vanta-ai-blond.vercel.app/">
     <strong>🚀 Live Demo</strong>
   </a>
   ·
-  <a href="https://youtu.be/bgmKrupsFeI">
+  <a href="https://youtu.be/4PF_dMbsB-w">
     <strong>📺 Watch Demo Video</strong>
   </a>
 </p>
@@ -47,13 +38,6 @@
   - Your conversations and blockchain data remain confidential
   - Cryptographic verification of model execution
   - No data leakage to third parties
-
-- **Modern Web Stack**
-  - [Next.js](https://nextjs.org) App Router with React Server Components
-  - [AI SDK](https://ai-sdk.dev/docs/introduction) for seamless AI interactions
-  - [shadcn/ui](https://ui.shadcn.com) with [Tailwind CSS](https://tailwindcss.com)
-  - [Neon Serverless Postgres](https://vercel.com/marketplace/neon) for chat history
-  - [Auth.js](https://authjs.dev) for secure authentication
 
 ## Autonomous Trading Agents
 
@@ -113,28 +97,36 @@ Autonomous agents are AI-powered entities that can independently analyze markets
 ## Blockchain Capabilities
 
 ### Check Balance
+
 Ask the assistant to check your NEAR account balance:
+
 ```
 "Check balance for alice.near"
 "What's my balance?" (after connecting wallet)
 ```
 
 ### Send Tokens
+
 Send NEAR tokens to any account with natural language:
+
 ```
 "Send 5 NEAR to bob.near"
 "Transfer 10 NEAR to alice.testnet with memo 'payment'"
 ```
 
 ### Swap Tokens
+
 Swap tokens on Ref Finance DEX:
+
 ```
 "Swap 10 NEAR to USDC"
 "Exchange 100 USDT for wNEAR"
 ```
 
 ### Account Information
+
 Get detailed information about any NEAR account:
+
 ```
 "Get account info for alice.near"
 "Show me details for bob.testnet"
@@ -161,116 +153,7 @@ This assistant uses NEAR AI models that run in Trusted Execution Environments (T
 ### Verification
 
 Verify that models are running in secure TEE environments:
+
 - Models are cryptographically verified before use
 - All responses can be traced to verified TEE instances
 - Transparent attestation reports available
-
-## Configuration
-
-### Required Environment Variables
-
-Create a `.env.local` file with the following variables:
-
-```bash
-# NEAR AI API (Required)
-NEAR_AI_API_KEY=your_near_ai_api_key
-NEAR_AI_ENDPOINT=https://cloud-api.near.ai/v1
-
-# NEAR AI Verification (Optional - for TEE attestation)
-NEAR_AI_CLOUD_API_KEY=your_near_ai_cloud_api_key
-
-# Database (Required)
-POSTGRES_URL=your_postgres_connection_string
-
-# Authentication (Required)
-AUTH_SECRET=your_auth_secret
-
-# NEAR Wallet (Optional - for wallet integration)
-NEAR_NETWORK=testnet  # or mainnet
-
-# Autonomous Agents (Required for agent feature)
-AGENT_KEYSTORE_SECRET=your_64_character_hex_string  # 32 bytes for AES-256 encryption
-```
-
-### Generating Agent Keystore Secret
-
-The `AGENT_KEYSTORE_SECRET` is used to encrypt agent private keys. Generate a secure 64-character hex string:
-
-```bash
-# Using Node.js
-node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
-
-# Using OpenSSL
-openssl rand -hex 32
-```
-
-### Getting API Keys
-
-- **NEAR AI API Key**: Get from [NEAR AI Docs](https://docs.near.ai/cloud/quickstart)
-- **NEAR AI Cloud API Key**: Get from [NEAR AI Verification Docs](https://docs.near.ai/cloud/verification)
-- **Database**: Use [Neon](https://neon.tech) or any Postgres provider
-
-## Deploy Your Own
-
-Deploy your own NEAR Blockchain AI Assistant to Vercel:
-
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/yourusername/near-ai-assistant)
-
-## Running Locally
-
-1. **Install Dependencies**
-```bash
-pnpm install
-```
-
-2. **Setup Environment Variables**
-```bash
-# Copy example env file
-cp .env.example .env.local
-
-# Edit .env.local with your API keys
-```
-
-3. **Setup Database**
-```bash
-pnpm db:migrate
-```
-
-4. **Start Development Server**
-```bash
-pnpm dev
-```
-
-Your app should now be running on [localhost:3000](http://localhost:3000).
-
-## Tech Stack
-
-- **Frontend**: Next.js 15, React, TypeScript, Tailwind CSS
-- **AI**: NEAR AI SDK, Vercel AI SDK
-- **Blockchain**: NEAR Protocol, Ref Finance
-- **Database**: PostgreSQL (Neon)
-- **Authentication**: Auth.js
-- **Deployment**: Vercel
-
-## Security Features
-
-- **Transaction Confirmation**: All blockchain operations require explicit user approval
-- **TEE Verification**: AI models run in verified Trusted Execution Environments
-- **Secure Authentication**: Auth.js with secure session management
-- **Input Validation**: All user inputs are validated and sanitized
-- **Rate Limiting**: Protection against abuse and spam
-
-## Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-## License
-
-MIT License - see LICENSE file for details
-
-## Support
-
-For issues and questions:
-- [GitHub Issues](https://github.com/yourusername/near-ai-assistant/issues)
-- [NEAR Discord](https://discord.gg/near)
-- [NEAR AI Docs](https://docs.near.ai)
