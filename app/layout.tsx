@@ -8,7 +8,7 @@ import { SessionProvider } from "next-auth/react";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://chat.vercel.ai"),
-  title: "Vantos",
+  title: "Vanta",
   description:
     "AI-powered chatbot with NEAR blockchain integration and autonomous agents.",
 };
