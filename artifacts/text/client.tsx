@@ -146,7 +146,7 @@ export const textArtifact = new Artifact<"text", TextArtifactMetadata>({
   ],
   toolbar: [
     {
-      icon: <PenIcon />,
+      icon: <PenIcon size={18} />,
       description: "Add final polish",
       onClick: ({ sendMessage }) => {
         sendMessage({
@@ -161,7 +161,7 @@ export const textArtifact = new Artifact<"text", TextArtifactMetadata>({
       },
     },
     {
-      icon: <MessageIcon />,
+      icon: <MessageIcon size={18} />,
       description: "Request suggestions",
       onClick: ({ sendMessage }) => {
         sendMessage({

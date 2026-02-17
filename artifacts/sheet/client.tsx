@@ -73,7 +73,7 @@ export const sheetArtifact = new Artifact<"sheet", Metadata>({
         const parsed = parse<string[]>(content, { skipEmptyLines: true });
 
         const nonEmptyRows = parsed.data.filter((row) =>
-          row.some((cell) => cell.trim() !== "")
+          row.some((cell) => cell.trim() !== ""),
         );
 
         const cleanedCsv = unparse(nonEmptyRows);
@@ -86,7 +86,7 @@ export const sheetArtifact = new Artifact<"sheet", Metadata>({
   toolbar: [
     {
       description: "Format and clean data",
-      icon: <SparklesIcon />,
+      icon: <SparklesIcon size={18} />,
       onClick: ({ sendMessage }) => {
         sendMessage({
           role: "user",
@@ -98,7 +98,7 @@ export const sheetArtifact = new Artifact<"sheet", Metadata>({
     },
     {
       description: "Analyze and visualize data",
-      icon: <LineChartIcon />,
+      icon: <LineChartIcon size={18} />,
       onClick: ({ sendMessage }) => {
         sendMessage({
           role: "user",

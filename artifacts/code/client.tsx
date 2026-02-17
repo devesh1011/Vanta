@@ -169,12 +169,12 @@ export const codeArtifact = new Artifact<"code", Metadata>({
           for (const handler of requiredHandlers) {
             if (OUTPUT_HANDLERS[handler as keyof typeof OUTPUT_HANDLERS]) {
               await currentPyodideInstance.runPythonAsync(
-                OUTPUT_HANDLERS[handler as keyof typeof OUTPUT_HANDLERS]
+                OUTPUT_HANDLERS[handler as keyof typeof OUTPUT_HANDLERS],
               );
 
               if (handler === "matplotlib") {
                 await currentPyodideInstance.runPythonAsync(
-                  "setup_matplotlib_output()"
+                  "setup_matplotlib_output()",
                 );
               }
             }
@@ -247,7 +247,7 @@ export const codeArtifact = new Artifact<"code", Metadata>({
   ],
   toolbar: [
     {
-      icon: <MessageIcon />,
+      icon: <MessageIcon size={18} />,
       description: "Add comments",
       onClick: ({ sendMessage }) => {
         sendMessage({
@@ -262,7 +262,7 @@ export const codeArtifact = new Artifact<"code", Metadata>({
       },
     },
     {
-      icon: <LogsIcon />,
+      icon: <LogsIcon size={18} />,
       description: "Add logs",
       onClick: ({ sendMessage }) => {
         sendMessage({
