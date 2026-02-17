@@ -2,7 +2,9 @@ import { geolocation } from "@vercel/functions";
 import {
   convertToModelMessages,
   createUIMessageStream,
+  InvalidToolInputError,
   JsonToSseTransformStream,
+  NoSuchToolError,
   smoothStream,
   stepCountIs,
   streamText,
@@ -29,6 +31,7 @@ import { checkBalance } from "@/lib/ai/tools/check-balance";
 import { getAccountInfo } from "@/lib/ai/tools/get-account-info";
 import { swapTokens } from "@/lib/ai/tools/swap-tokens";
 import { wrapNear, unwrapNear } from "@/lib/ai/tools/wrap-near";
+import { normalizeTokenSymbol } from "@/lib/ref-finance/tokens";
 import { isProductionEnvironment } from "@/lib/constants";
 import {
   createStreamId,
@@ -59,13 +62,13 @@ const getTokenlensCatalog = cache(
     } catch (err) {
       console.warn(
         "TokenLens: catalog fetch failed, using default catalog",
-        err
+        err,
       );
       return; // tokenlens helpers will fall back to defaultCatalog
     }
   },
   ["tokenlens-catalog"],
-  { revalidate: 24 * 60 * 60 } // 24 hours
+  { revalidate: 24 * 60 * 60 }, // 24 hours
 );
 
 export function getStreamContext() {
@@ -77,7 +80,7 @@ export function getStreamContext() {
     } catch (error: any) {
       if (error.message.includes("REDIS_URL")) {
         console.log(
-          " > Resumable streams are disabled due to missing REDIS_URL"
+          " > Resumable streams are disabled due to missing REDIS_URL",
         );
       } else {
         console.error(error);
@@ -105,11 +108,13 @@ export async function POST(request: Request) {
       message,
       selectedChatModel,
       selectedVisibilityType,
+      walletAccountId,
     }: {
       id: string;
       message: ChatMessage;
       selectedChatModel: ChatModel["id"];
       selectedVisibilityType: VisibilityType;
+      walletAccountId?: string;
     } = requestBody;
 
     console.log("Selected chat model:", selectedChatModel);
@@ -188,48 +193,73 @@ export async function POST(request: Request) {
         console.log("About to call streamText with model:", selectedChatModel);
         const model = myProvider.languageModel(selectedChatModel);
         console.log("Model instance:", model);
-        
+
         // Check if this is a NEAR AI model
         const isNearAI = selectedChatModel.startsWith("near-");
         if (isNearAI) {
           console.log("🔵 NEAR AI model detected:", selectedChatModel);
         }
-        
+
+        // Log tools configuration
+        const toolsConfig = {
+          sendNearTokens: sendNearTokens({ session, dataStream }),
+          checkBalance: checkBalance({ session, dataStream }),
+          getAccountInfo,
+          swapTokens: swapTokens({ session, dataStream }),
+          wrapNear: wrapNear({ session, dataStream }),
+          unwrapNear: unwrapNear({ session, dataStream }),
+          // Add code_execution tool for Claude models (required for skills)
+          ...(selectedChatModel.startsWith("claude") && {
+            code_execution: anthropic.tools.codeExecution_20250825(),
+          }),
+        };
+
+        const activeTools =
+          selectedChatModel === "chat-model-reasoning"
+            ? []
+            : selectedChatModel.startsWith("claude")
+              ? [
+                  "sendNearTokens",
+                  "checkBalance",
+                  "getAccountInfo",
+                  "swapTokens",
+                  "wrapNear",
+                  "unwrapNear",
+                  "code_execution",
+                ]
+              : [
+                  "sendNearTokens",
+                  "checkBalance",
+                  "getAccountInfo",
+                  "swapTokens",
+                  "wrapNear",
+                  "unwrapNear",
+                ];
+
+        console.log("🔧 Tools configuration:");
+        console.log("  Available tools:", Object.keys(toolsConfig));
+        console.log("  Active tools:", activeTools);
+        const lastMsg = uiMessages[uiMessages.length - 1];
+        const lastMsgPart = lastMsg?.parts?.[0];
+        console.log(
+          "  Last user message:",
+          lastMsgPart && "text" in lastMsgPart
+            ? lastMsgPart.text
+            : "(non-text)",
+        );
+
         const result = streamText({
           model,
-          system: systemPrompt({ selectedChatModel, requestHints }),
+          system: systemPrompt({
+            selectedChatModel,
+            requestHints,
+            walletAccountId,
+          }),
           messages: convertToModelMessages(uiMessages),
-          stopWhen: stepCountIs(5),
-          experimental_activeTools:
-            selectedChatModel === "chat-model-reasoning"
-              ? []
-              : selectedChatModel.startsWith("claude")
-                ? [
-                    "sendNearTokens",
-                    "checkBalance",
-                    "getAccountInfo",
-                    "swapTokens",
-                    "code_execution",
-                  ]
-                : [
-                    "sendNearTokens",
-                    "checkBalance",
-                    "getAccountInfo",
-                    "swapTokens",
-                  ],
+          stopWhen: stepCountIs(10),
+          experimental_activeTools: activeTools,
           experimental_transform: smoothStream({ chunking: "word" }),
-          tools: {
-            sendNearTokens: sendNearTokens({ session, dataStream }),
-            checkBalance: checkBalance({ session, dataStream }),
-            getAccountInfo,
-            swapTokens: swapTokens({ session, dataStream }),
-            wrapNear: wrapNear({ session, dataStream }),
-            unwrapNear: unwrapNear({ session, dataStream }),
-            // Add code_execution tool for Claude models (required for skills)
-            ...(selectedChatModel.startsWith("claude") && {
-              code_execution: anthropic.tools.codeExecution_20250825(),
-            }),
-          },
+          tools: toolsConfig,
           // Add skills for Claude models via providerOptions
           ...(selectedChatModel.startsWith("claude") && {
             providerOptions: {
@@ -243,6 +273,96 @@ export async function POST(request: Request) {
           experimental_telemetry: {
             isEnabled: isProductionEnvironment,
             functionId: "stream-text",
+          },
+          // Repair malformed tool calls from NEAR AI / vLLM
+          ...(isNearAI && {
+            experimental_repairToolCall: async ({
+              toolCall,
+              tools: availableTools,
+              error,
+            }) => {
+              if (NoSuchToolError.isInstance(error)) {
+                return null; // can't fix an unknown tool name
+              }
+
+              console.log(
+                "🔧 Repairing tool call:",
+                toolCall.toolName,
+                "input:",
+                toolCall.input,
+                "error:",
+                error.message,
+              );
+
+              // Try to extract valid JSON from the (possibly garbled) input
+              let parsed: Record<string, unknown> | null = null;
+              try {
+                parsed = JSON.parse(toolCall.input);
+              } catch {
+                // Try to find the last complete JSON object inside the string
+                const matches = toolCall.input.match(/\{[^{}]*\}/g);
+                if (matches && matches.length > 0) {
+                  try {
+                    parsed = JSON.parse(matches[matches.length - 1]);
+                  } catch {
+                    /* no salvageable JSON */
+                  }
+                }
+              }
+
+              if (!parsed) return null;
+
+              // For swap tool: normalize truncated token symbols and infer missing toToken
+              if (toolCall.toolName === "swapTokens") {
+                if (parsed.fromToken) {
+                  parsed.fromToken = normalizeTokenSymbol(
+                    String(parsed.fromToken),
+                  );
+                }
+                if (parsed.toToken) {
+                  parsed.toToken = normalizeTokenSymbol(String(parsed.toToken));
+                }
+                // If toToken is still missing, infer from user message
+                if (!parsed.toToken) {
+                  const lastUserMsg =
+                    uiMessages[uiMessages.length - 1]?.parts?.[0];
+                  const userText =
+                    lastUserMsg && "text" in lastUserMsg
+                      ? lastUserMsg.text
+                      : "";
+                  const tokens = ["USDT", "USDC", "NEAR", "wNEAR"];
+                  const fromUpper = String(
+                    parsed.fromToken ?? "",
+                  ).toUpperCase();
+                  const inferred = tokens.find(
+                    (t) =>
+                      t !== fromUpper && userText.toUpperCase().includes(t),
+                  );
+                  if (inferred) {
+                    parsed.toToken = inferred;
+                    console.log("🔧 Inferred missing toToken:", inferred);
+                  }
+                }
+                console.log("🔧 Repaired swap args:", JSON.stringify(parsed));
+              }
+
+              return {
+                ...toolCall,
+                input: JSON.stringify(parsed),
+              };
+            },
+          }),
+          onStepFinish: ({ finishReason, toolCalls, text }) => {
+            console.log("🔧 Step finished:", finishReason);
+            if (toolCalls.length > 0) {
+              console.log(
+                "🔧 Tool calls:",
+                toolCalls.map((tc) => tc.toolName),
+              );
+            }
+            if (text) {
+              console.log("🔧 Text generated:", text.slice(0, 120));
+            }
           },
           onFinish: async ({ usage }) => {
             try {
@@ -278,24 +398,11 @@ export async function POST(request: Request) {
           },
         });
 
-        result.consumeStream();
-
         const uiStream = result.toUIMessageStream({
           sendReasoning: true,
         });
 
-        // Add debug logging for NEAR AI responses
-        if (isNearAI) {
-          const debugStream = new TransformStream({
-            transform(chunk, controller) {
-              console.log("🔵 NEAR AI stream chunk:", JSON.stringify(chunk, null, 2));
-              controller.enqueue(chunk);
-            },
-          });
-          dataStream.merge(uiStream.pipeThrough(debugStream));
-        } else {
-          dataStream.merge(uiStream);
-        }
+        dataStream.merge(uiStream);
       },
       generateId: generateUUID,
       onFinish: async ({ messages }) => {
@@ -348,7 +455,7 @@ export async function POST(request: Request) {
     if (
       error instanceof Error &&
       error.message?.includes(
-        "AI Gateway requires a valid credit card on file to service requests"
+        "AI Gateway requires a valid credit card on file to service requests",
       )
     ) {
       return new ChatSDKError("bad_request:activate_gateway").toResponse();
@@ -361,7 +468,7 @@ export async function POST(request: Request) {
       console.error("Error stack:", error.stack);
     }
     console.error("Vercel ID:", vercelId);
-    
+
     return new ChatSDKError("offline:chat").toResponse();
   }
 }

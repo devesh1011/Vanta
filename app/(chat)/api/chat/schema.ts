@@ -34,6 +34,7 @@ export const postRequestBodySchema = z.object({
     "near-qwen-3",
   ]),
   selectedVisibilityType: z.enum(["public", "private"]),
+  walletAccountId: z.string().optional(),
 });
 
 export type PostRequestBody = z.infer<typeof postRequestBodySchema>;
