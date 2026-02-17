@@ -468,7 +468,9 @@ function PureModelSelectorCompact({
           <span className="text-[13px] font-bold text-gray-800">
             {selectedModel?.name}
           </span>
-          <ChevronDownIcon size={12} className="text-gray-400" />
+          <span className="text-gray-400">
+            <ChevronDownIcon size={12} />
+          </span>
         </button>
       </Trigger>
       <PromptInputModelSelectContent className="min-w-[260px] p-0">
